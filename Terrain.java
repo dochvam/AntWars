@@ -23,116 +23,145 @@ public class Terrain {
 			// 6 = lava
 		boolean done = false;
 
-		// initialize grass seeds
-		for (int i = 0; i < dim*dim*0.0045; i++) {
-			done = false;
-			while (!done) {
-				int tempx = (int)(Math.random()*dim);
-				int tempy = (int)(Math.random()*dim);
-				// System.out.println(tempx + " " + tempy);
-				if (this.land[tempx][tempy] == 0) {
-					done = true;
-					land[tempx][tempy] = 1;
-				}
+		for (int i = 0; i < dim; i++) {
+			for (int j = 0; j < dim; j++) {
+				land[i][j] = 1;
 			}
 		}
 
-		// initialize sand seeds
-		for (int i = 0; i < dim*dim*0.001; i++) {
-			done = false;
-			while (!done) {
-				int tempx = (int)(Math.random()*dim);
-				int tempy = (int)(Math.random()*dim);
-				if (land[tempx][tempy] == 0) {
-					done = true;
-					land[tempx][tempy] = 2;
-				}
+		// initialize lava
+		PriorityQueue<Point> lavaseeds = new PriorityQueue<>();
+		int numLavaLakes = (int)(Math.random() * 3) + 1;
+		for (int i = 0; i < numLavaLakes; i++) {
+			Point p = new Point((int)(Math.random()*dim-1),(int)(Math.random()*dim-1),0);
+			lavaseeds.add(p);
+
+			for (int j = 0; j < Math.random()*7; j++) {
+				try {
+					int tx = p.x;
+					int ty = p.y;
+					double r1 = Math.random();
+					double r2 = Math.random();
+					if (r1 > 0.66) tx += j;
+					else if (r1 > 0.33) tx += j*-1;
+					if (r2 > 0.66) ty += j;
+					else if (r2 > 0.33) ty = j*-1;
+					if (land[tx][ty] == 1) lavaseeds.add(new Point(tx,ty,0));
+
+				} catch (Exception e) {}
 			}
 		}
 
-		// initialize forest seeds
-		for (int i = 0; i < dim*dim*0.0015; i++) {
-			done = false;
-			while (!done) {
-				int tempx = (int)(Math.random()*dim);
-				int tempy = (int)(Math.random()*dim);
-				if (land[tempx][tempy] == 0) {
-					done = true;
-					land[tempx][tempy] = 3;
-				}
-			}
-		}
+		int totalLava = 0;
+		while (totalLava < dim*dim / 25 && lavaseeds.size() > 0) {
+			Point temp = lavaseeds.poll();
+			this.land[temp.x][temp.y] = 6;
+			totalLava++;
 
-		// initialize swamp seeds
-		for (int i = 0; i < dim*dim*0.0005; i++) {
-			done = false;
-			while (!done) {
-				int tempx = (int)(Math.random()*dim);
-				int tempy = (int)(Math.random()*dim);
-				if (land[tempx][tempy] == 0) {
-					done = true;
-					land[tempx][tempy] = 4;
-				}
-			}
+			try {
+				int dx = (int)(Math.random() * 3) - 1;
+				int dy = (int)(Math.random() * 3) - 1;
+				int val = land[temp.x + dx][temp.y + dy];
+				// if (val == 1) {
+					lavaseeds.add(new Point(temp.x + dx, temp.y + dy, temp.depth + 1));
+				// }
+			} catch (Exception e) {}
 		}
-
-		// initialize sand seeds
-		for (int i = 0; i < dim*dim*0.002; i++) {
-			done = false;
-			while (!done) {
-				int tempx = (int)(Math.random()*dim);
-				int tempy = (int)(Math.random()*dim);
-				if (land[tempx][tempy] == 0) {
-					done = true;
-					land[tempx][tempy] = 5;
-				}
-			}
-		}
-
-		// initialize lava seeds
-		for (int i = 0; i < dim*dim*0.0005; i++) {
-			done = false;
-			while (!done) {
-				int tempx = (int)(Math.random()*dim);
-				int tempy = (int)(Math.random()*dim);
-				if (land[tempx][tempy] == 0) {
-					done = true;
-					land[tempx][tempy] = 6;
-				}
-			}
-		}
-
 
 		done = false;
 		while (!done) {
-			done = true;
-			int[][] nextLand = this.land;
 			for (int i = 0; i < dim; i++) {
 				for (int j = 0; j < dim; j++) {
-					if (land[i][j] == 0) {
-						ArrayList<Integer> vals = new ArrayList<>();
-						int neighbors = 0;
-						done = false;
-						for (int x = -1; x < 2; x++) {
-							for (int y = -1; y < 2; y++) {
-								try {
-									int temp = land[i+x][j+y];
-									if (temp != 0) {
-										neighbors++;
-										vals.add(temp);
-									}
-								} catch (Exception e) {}
-							}
+					int sum = 0;
+					int neighbors = 0;
+					for (int x = -1; x < 2; x++) {
+						for (int y = -1; y < 2; y++) {
+							try {
+								if (land[i+x][j+y] == 6) sum++;
+								neighbors++;
+							} catch (Exception e) {}
 						}
-
-						if (neighbors != 0) nextLand[i][j] = vals.get((int)Math.floor(Math.random()*neighbors));
-
 					}
+					if (sum > 4){
+						land[i][j] = 6; 
+						totalLava++;
+					}
+					if (totalLava > dim*dim/10) done = true;
 				}
 			}
-			this.land = nextLand;
 		}
+		// initializing water
+		PriorityQueue<Point> lakeseeds = new PriorityQueue<>();
+		int numLakes = (int)(Math.random() * 3) + 2;
+		for (int i = 0; i < numLakes; i++) {
+			Point p = new Point((int)(Math.random()*dim-1),(int)(Math.random()*dim-1),0);
+			lakeseeds.add(p);
+
+			for (int j = 0; j < Math.random()*10+10; j++) {
+				try {
+					int tx = p.x;
+					int ty = p.y;
+					double r1 = Math.random();
+					double r2 = Math.random();
+					if (r1 > 0.66) tx += j;
+					else if (r1 > 0.33) tx += j*-1;
+					if (r2 > 0.66) ty += j;
+					else if (r2 > 0.33) ty = j*-1;
+					if (land[tx][ty] == 1) lakeseeds.add(new Point(tx,ty,0));
+
+				} catch (Exception e) {}
+			}
+		}
+
+		int totalLake = 0;
+		while (totalLake < dim*dim / 7 && lakeseeds.size() > 0) {
+			Point temp = lakeseeds.poll();
+			this.land[temp.x][temp.y] = 5;
+			totalLake++;
+
+			try {
+				int dx = (int)(Math.random() * 3) - 1;
+				int dy = (int)(Math.random() * 3) - 1;
+				int val = land[temp.x + dx][temp.y + dy];
+				// if (val == 1) {
+					lakeseeds.add(new Point(temp.x + dx, temp.y + dy, temp.depth + 1));
+				// }
+			} catch (Exception e) {}
+		}
+
+		done = false;
+		while (!done) {
+			for (int i = 0; i < dim; i++) {
+				for (int j = 0; j < dim; j++) {
+					int sum = 0;
+					int neighbors = 0;
+					for (int x = -1; x < 2; x++) {
+						for (int y = -1; y < 2; y++) {
+							try {
+								if (land[i+x][j+y] == 5) sum++;
+								neighbors++;
+							} catch (Exception e) {}
+						}
+					}
+					if (sum > 4){
+						land[i][j] = 5; 
+						totalLake++;
+					}
+					if (totalLake > dim*dim/5) done = true;
+				}
+			}
+		}
+
+
+		System.out.println(totalLava + " " + lavaseeds.size());
 	}
+
+
+
+
+
+
+
 
 	public void display() {
 		for (int i = 0; i < dim; i++) {
