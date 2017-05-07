@@ -29,11 +29,23 @@ public class Terrain {
 			}
 		}
 
+		initLava();
+		initWater();
+		initTrees();
+		initSwamp();
+		initSand();
+
+	}
+
+	public void initLava() {
 		// initialize lava
 		PriorityQueue<Point> lavaseeds = new PriorityQueue<>();
-		int numLavaLakes = (int)(Math.random() * 3) + 1;
+		int numLavaLakes = (int)(Math.random() * 2) + 2;
 		for (int i = 0; i < numLavaLakes; i++) {
-			Point p = new Point((int)(Math.random()*dim-1),(int)(Math.random()*dim-1),0);
+			int quad = i % 4;
+			int a = (quad < 2) ? 1:2;
+			int b = (quad%2 == 0) ? 1:2;
+			Point p = new Point((int)(Math.random()*a*dim/2 -1),(int)(Math.random()*b*dim/2-1),0);
 			lavaseeds.add(p);
 
 			for (int j = 0; j < Math.random()*7; j++) {
@@ -68,7 +80,7 @@ public class Terrain {
 			} catch (Exception e) {}
 		}
 
-		done = false;
+		boolean done = false;
 		while (!done) {
 			for (int i = 0; i < dim; i++) {
 				for (int j = 0; j < dim; j++) {
@@ -86,15 +98,21 @@ public class Terrain {
 						land[i][j] = 6; 
 						totalLava++;
 					}
-					if (totalLava > dim*dim/10) done = true;
+					if (totalLava > dim*dim/8) done = true;
 				}
 			}
 		}
+	}
+
+	public void initWater() {
 		// initializing water
 		PriorityQueue<Point> lakeseeds = new PriorityQueue<>();
-		int numLakes = (int)(Math.random() * 3) + 2;
+		int numLakes = (int)(Math.random() * 5) + 5;
 		for (int i = 0; i < numLakes; i++) {
-			Point p = new Point((int)(Math.random()*dim-1),(int)(Math.random()*dim-1),0);
+			int quad = i % 4;
+			int a = (quad < 2) ? 1:2;
+			int b = (quad%2 == 0) ? 1:2;
+			Point p = new Point((int)(Math.random()*a*dim/2 -1),(int)(Math.random()*b*dim/2-1),0);
 			lakeseeds.add(p);
 
 			for (int j = 0; j < Math.random()*10+10; j++) {
@@ -114,22 +132,22 @@ public class Terrain {
 		}
 
 		int totalLake = 0;
-		while (totalLake < dim*dim / 7 && lakeseeds.size() > 0) {
+		while (totalLake < dim*dim / 15 && lakeseeds.size() > 0) {
 			Point temp = lakeseeds.poll();
+			if (this.land[temp.x][temp.y] != 5) totalLake++;
 			this.land[temp.x][temp.y] = 5;
-			totalLake++;
 
 			try {
 				int dx = (int)(Math.random() * 3) - 1;
 				int dy = (int)(Math.random() * 3) - 1;
 				int val = land[temp.x + dx][temp.y + dy];
 				// if (val == 1) {
-					lakeseeds.add(new Point(temp.x + dx, temp.y + dy, temp.depth + 1));
+				lakeseeds.add(new Point(temp.x + dx, temp.y + dy, temp.depth + 1));
 				// }
 			} catch (Exception e) {}
 		}
 
-		done = false;
+		boolean done = false;
 		while (!done) {
 			for (int i = 0; i < dim; i++) {
 				for (int j = 0; j < dim; j++) {
@@ -147,21 +165,196 @@ public class Terrain {
 						land[i][j] = 5; 
 						totalLake++;
 					}
-					if (totalLake > dim*dim/5) done = true;
+					if (totalLake > (dim*dim)/10) done = true;
+				}
+			}
+		}
+	}
+
+
+	public void initTrees() {
+		// initialize forest
+		PriorityQueue<Point> forestqueue = new PriorityQueue<>();
+		for (int i = 0; i < Math.random() * 10 + dim/50; i++) {
+			int quad = i % 4;
+			int a = (quad < 2) ? 1:2;
+			int b = (quad%2 == 0) ? 1:2;
+			Point p = new Point((int)(Math.random()*a*dim/2 -1),(int)(Math.random()*b*dim/2-1),0);
+			forestqueue.add(p);
+			int lengthOfLine = (int)(Math.random() * 30 + 7);
+			int xdir = (int)(Math.random() * 2);
+			if (xdir == 0) xdir--;
+			int ydir = (int)(Math.random() * 2);
+			if (ydir == 0) ydir--;
+			int xory = (int)(Math.random() * 2);
+			
+			int thisx = p.x;
+			int thisy = p.y;
+			for (int l = 0; l < lengthOfLine; l++) {
+				if (xory == 1) {
+					thisx += xdir;
+					if (Math.random() > 0.8) thisy += ydir;
+				} else {
+					thisy += ydir;
+					if (Math.random() > 0.8) thisx += xdir;
+				}
+				try {
+					int z = land[thisx][thisy];
+					forestqueue.add(new Point(thisx, thisy, 0));
+				} catch (Exception e) {}
+			}
+		}
+
+		int totalWoods = 0;
+		while (totalWoods < dim*dim / 15 && forestqueue.size() > 0) {
+		// while (forestqueue.size() > 0) {
+			Point temp = forestqueue.poll();
+			if (land[temp.x][temp.y] == 1) {
+				this.land[temp.x][temp.y] = 3;
+				totalWoods++;
+
+				try {
+					for (int i = 0; i < 2; i++){
+						int dx = (int)(Math.random() * 3) - 1;
+						int dy = (int)(Math.random() * 3) - 1;
+						int val = land[temp.x + dx][temp.y + dy];
+						forestqueue.add(new Point(temp.x + dx, temp.y + dy, temp.depth + 1));
+					}
+				} catch (Exception e) {}
+			}
+		}
+
+		int[][] nextLand = new int[dim][dim];
+
+		for (int i = 0; i < dim; i++) {
+			for (int j = 0; j < dim; j++) {
+				nextLand[i][j] = land[i][j];
+				int sum = 0;
+				int neighbors = 0;
+				for (int x = -1; x < 2; x++) {
+					for (int y = -1; y < 2; y++) {
+						try {
+							if (land[i+x][j+y] == 3) sum++;
+							neighbors++;
+						} catch (Exception e) {}
+					}
+				}
+				if (sum > 2 && land[i][j] == 1){
+					nextLand[i][j] = 3; 
+					totalWoods++;
+				}
+
+			}
+		}
+		this.land = nextLand;
+	}
+
+	public void initSwamp() {
+		PriorityQueue<Point> swampqueue = new PriorityQueue<>();
+		for (int x = 0; x < dim; x++) {
+			for (int y = 0; y < dim; y++) {
+				int sum = 0;
+				int neighbors = 0;
+				for (int i = -1; i < 2; i++) {
+					for (int j = -1; j < 2; j++) {
+						try {
+							if (land[i+x][j+y] == 5) sum++;
+							neighbors++;
+						} catch (Exception e) {}
+					}
+				}
+				if (land[x][y] == 1 && sum > 0 && Math.random() < 0.02) {
+					Point p = new Point(x,y,0);
+					swampqueue.add(p);
 				}
 			}
 		}
 
+		int totalWoods = 0;
+		while (totalWoods < dim*dim / 15 && swampqueue.size() > 0) {
+		// while (swampqueue.size() > 0) {
+			Point temp = swampqueue.poll();
+			if (land[temp.x][temp.y] == 1) {
+				this.land[temp.x][temp.y] = 4;
+				totalWoods++;
 
-		System.out.println(totalLava + " " + lavaseeds.size());
+				try {
+					for (int i = 0; i < 2; i++){
+						int dx = (int)(Math.random() * 3) - 1;
+						int dy = (int)(Math.random() * 3) - 1;
+						int val = land[temp.x + dx][temp.y + dy];
+						swampqueue.add(new Point(temp.x + dx, temp.y + dy, temp.depth + 1));
+					}
+				} catch (Exception e) {}
+			}
+		}
+
+		int[][] nextLand = new int[dim][dim];
+
+		for (int i = 0; i < dim; i++) {
+			for (int j = 0; j < dim; j++) {
+				nextLand[i][j] = land[i][j];
+				int sum = 0;
+				int neighbors = 0;
+				for (int x = -1; x < 2; x++) {
+					for (int y = -1; y < 2; y++) {
+						try {
+							if (land[i+x][j+y] == 4) sum++;
+							neighbors++;
+						} catch (Exception e) {}
+					}
+				}
+				if (sum > 2 && land[i][j] == 1){
+					nextLand[i][j] = 4; 
+					totalWoods++;
+				}
+
+			}
+		}
+		this.land = nextLand;
 	}
 
+	public void initSand() {
+		PriorityQueue<Point> sandqueue = new PriorityQueue<>();
+		for (int x = 0; x < dim; x++) {
+			for (int y = 0; y < dim; y++) {
+				int sum = 0;
+				int neighbors = 0;
+				for (int i = -1; i < 2; i++) {
+					for (int j = -1; j < 2; j++) {
+						try {
+							if (land[i+x][j+y] == 5) sum++;
+							neighbors++;
+						} catch (Exception e) {}
+					}
+				}
+				if (land[x][y] == 1 && sum > 0) {
+					Point p = new Point(x,y,0);
+					sandqueue.add(p);
+				}
+			}
+		}
+		sandqueue.add(new Point((int)(Math.random() * dim), (int)(Math.random() * dim), -30));
 
+		int totalSand = 0;
+		while (totalSand < dim*dim / 15 && sandqueue.size() > 0) {
+		// while (sandqueue.size() > 0) {
+			Point temp = sandqueue.poll();
+			if (land[temp.x][temp.y] == 1 && temp.depth < 3) {
+				this.land[temp.x][temp.y] = 2;
+				totalSand++;
 
-
-
-
-
+				try {
+					for (int i = 0; i < 5; i++){
+						int dx = (int)(Math.random() * 3) - 1;
+						int dy = (int)(Math.random() * 3) - 1;
+						int val = land[temp.x + dx][temp.y + dy];
+						sandqueue.add(new Point(temp.x + dx, temp.y + dy, temp.depth + 1));
+					}
+				} catch (Exception e) {}
+			}
+		}
+	}
 
 	public void display() {
 		for (int i = 0; i < dim; i++) {
@@ -224,8 +417,18 @@ public class Terrain {
 		return returnable;
 	}
 
+	public int getAreaOf(int type) {
+		int sum = 0;
+		for (int i = 0; i < dim; i++) {
+			for (int j = 0; j < dim; j++) {
+				if (land[i][j] == type) sum++;
+			}
+		}
+		return sum;
+	}
+
 	public static void main(String[] args) {
-		int dim = 100;
+		int dim = 400;
 
 		StdDraw.setCanvasSize(1200,800);
 		StdDraw.setYscale(-1,dim + 2);
@@ -234,6 +437,12 @@ public class Terrain {
 
 		Terrain terr = new Terrain(dim);
 		terr.display();
+
+		for (int i = 0; i < 7; i++) {
+			int x = terr.getAreaOf(i);
+			System.out.println(i + ": " +100*x/(dim*dim));
+		}
+
 
 		// for (int i = 0; i < 100; i++) {
 		// 	for (int j = 0; j < 100; j++) {
