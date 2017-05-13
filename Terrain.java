@@ -4,13 +4,17 @@ public class Terrain {
 
 	int[][] land;
 	int dim;
-	double[][] colors = {{270,1,0.8},{320,0.5,0.5},{225,0.5,0.3},{280,0.5,0.2},{130,1,0.5},{0,1,0.5}};
+	double[][] colors = {{0,0,0},{270,1,0.8},{320,0.5,0.5},{225,0.5,0.3},{280,0.5,0.2},{130,1,0.5},{0,1,0.5}};
+	Food food;
+	int[][] paths;
 
 	public Terrain(int dim) {
 		this.dim = dim;
 		this.land = new int[dim][dim];
+		this.paths = new int[dim][dim];
 		// System.out.println(land.length + " " + land[0].length);
 		initLand();
+		this.food = new Food(this.land);
 	}
 
 	public void initLand() {
@@ -26,23 +30,24 @@ public class Terrain {
 		for (int i = 0; i < dim; i++) {
 			for (int j = 0; j < dim; j++) {
 				land[i][j] = 1;
-			}
-		}
+		}}
 
 		initLava();
 		initWater();
 		initTrees();
+		initTrees();
 		initSwamp();
 		initSand();
-
+		smooth(5);
 	}
 
 	public void initLava() {
 		// initialize lava
 		PriorityQueue<Point> lavaseeds = new PriorityQueue<>();
+		int rotate = (int)(Math.random()*4);
 		int numLavaLakes = (int)(Math.random() * 2) + 2;
 		for (int i = 0; i < numLavaLakes; i++) {
-			int quad = i % 4;
+			int quad = rotate + i % 4;
 			int a = (quad < 2) ? 1:2;
 			int b = (quad%2 == 0) ? 1:2;
 			Point p = new Point((int)(Math.random()*a*dim/2 -1),(int)(Math.random()*b*dim/2-1),0);
@@ -107,9 +112,10 @@ public class Terrain {
 	public void initWater() {
 		// initializing water
 		PriorityQueue<Point> lakeseeds = new PriorityQueue<>();
-		int numLakes = (int)(Math.random() * 5) + 5;
+		int numLakes = (int)(Math.random() * 5) + 8;
+		int rotate = (int)(Math.random()*4);
 		for (int i = 0; i < numLakes; i++) {
-			int quad = i % 4;
+			int quad = rotate + i % 4;
 			int a = (quad < 2) ? 1:2;
 			int b = (quad%2 == 0) ? 1:2;
 			Point p = new Point((int)(Math.random()*a*dim/2 -1),(int)(Math.random()*b*dim/2-1),0);
@@ -161,8 +167,8 @@ public class Terrain {
 							} catch (Exception e) {}
 						}
 					}
-					if (sum > 4){
-						land[i][j] = 5; 
+					if (sum > 2 && land[i][j] != 5 && Math.random() > 0.2){
+						land[i][j] = 5;
 						totalLake++;
 					}
 					if (totalLake > (dim*dim)/10) done = true;
@@ -175,8 +181,9 @@ public class Terrain {
 	public void initTrees() {
 		// initialize forest
 		PriorityQueue<Point> forestqueue = new PriorityQueue<>();
+		int rotate = (int)(Math.random()*4);
 		for (int i = 0; i < Math.random() * 10 + dim/50; i++) {
-			int quad = i % 4;
+			int quad = rotate + i % 4;
 			int a = (quad < 2) ? 1:2;
 			int b = (quad%2 == 0) ? 1:2;
 			Point p = new Point((int)(Math.random()*a*dim/2 -1),(int)(Math.random()*b*dim/2-1),0);
@@ -335,6 +342,8 @@ public class Terrain {
 			}
 		}
 		sandqueue.add(new Point((int)(Math.random() * dim), (int)(Math.random() * dim), -30));
+		sandqueue.add(new Point((int)(Math.random() * dim), (int)(Math.random() * dim), -30));
+		sandqueue.add(new Point((int)(Math.random() * dim), (int)(Math.random() * dim), -30));
 
 		int totalSand = 0;
 		while (totalSand < dim*dim / 15 && sandqueue.size() > 0) {
@@ -356,16 +365,50 @@ public class Terrain {
 		}
 	}
 
+	public void smooth(int factor) {
+
+		for (int coverType = 1; coverType < 7; coverType++) {
+			for (int runs = 0; runs < factor; runs++){
+				int[][] nextLand = new int[dim][dim];
+				for (int i = 0; i < dim; i++) {
+					for (int j = 0; j < dim; j++) {
+						nextLand[i][j] = land[i][j];
+						int sum = 0;
+						int neighbors = 0;
+						for (int x = -1; x < 2; x++) {
+							for (int y = -1; y < 2; y++) {
+								try {
+									if (land[i+x][j+y] == coverType) sum++;
+									neighbors++;
+								} catch (Exception e) {}
+							}
+						}
+						if (sum > 4 && land[i][j] == 1){
+							nextLand[i][j] = coverType; 
+						}
+
+					}
+				}
+				this.land = nextLand;
+			}
+		}
+	}
+
 	public void display() {
 		for (int i = 0; i < dim; i++) {
 			for (int j = 0; j < dim; j++) {
-				int[] rgb = getRGB((int)colors[land[i][j]-1][0], (float)colors[land[i][j]-1][1], (float)colors[land[i][j]-1][2] );
+				int[] rgb = getRGB((int)colors[land[i][j]][0], (float)colors[land[i][j]][1], (float)colors[land[i][j]][2] );
 
 				StdDraw.setPenColor((int)rgb[0],(int)rgb[1], (int)rgb[2]);
 				StdDraw.filledRectangle(i+0.5, j+0.5, 0.5, 0.5);
+				if (this.paths[i][j] != 0) {
+					StdDraw.setPenColor(125,125,125);
+					if (this.paths[i][j] % 2 == 0) StdDraw.filledRectangle(i+0.5, j+0.5, 0.25, 0.5);
+					else StdDraw.filledRectangle(i+0.5, j+0.5, 0.5, 0.25);
+				}
 			}
 		}
-		StdDraw.show();
+		this.food.display();	
 	}
 
 	public int[] getRGB(int h, float s, float b){
@@ -430,9 +473,9 @@ public class Terrain {
 	public static void main(String[] args) {
 		int dim = 400;
 
-		StdDraw.setCanvasSize(1200,800);
+		StdDraw.setCanvasSize(800,800);
 		StdDraw.setYscale(-1,dim + 2);
-		StdDraw.setXscale(-1,dim*1.5 + 2);
+		StdDraw.setXscale(-1,dim + 2);
 		StdDraw.enableDoubleBuffering();
 
 		Terrain terr = new Terrain(dim);
@@ -443,7 +486,12 @@ public class Terrain {
 			System.out.println(i + ": " +100*x/(dim*dim));
 		}
 
-
+		Ant ant = new Ant(200, 200, terr);
+		for (int i = 0; i < 500; i++) {
+			ant.step();
+			ant.display();
+			StdDraw.show();
+		}
 		// for (int i = 0; i < 100; i++) {
 		// 	for (int j = 0; j < 100; j++) {
 		// 		System.out.print(terr.land[i][j]);
