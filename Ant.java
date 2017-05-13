@@ -9,10 +9,10 @@ public class Ant {
 	protected Terrain terr;
 
 	// sensory input
-	protected int[][] fieldOfView = new int[11][11];
-	protected int[][] senseFood = new int[11][11];
-	protected int[][] sensePath = new int[11][11];
-	protected ArrayList<Point> memory = new ArrayList<>();
+	// protected int[][] fieldOfView = new int[11][11];
+	// protected int[][] senseFood = new int[11][11];
+	// protected int[][] sensePath = new int[11][11];
+	// protected ArrayList<Point> memory = new ArrayList<>();
 
 
 	public Ant(int x, int y, Terrain t) {

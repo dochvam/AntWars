@@ -12,8 +12,13 @@ public class AntAgent {
 	protected double[][] genome;
 	protected boolean shoot;
 	protected boolean alive = true;
+	protected int x;
+	protected int y;
+	protected int dir;
+	final double id = Math.random();
+	protected Terrain terr;
 
-	public AntAgent(double[][] actMatrix) {
+	public AntAgent(double[][] actMatrix, Terrain t) {
 		this.mutateChance = 0.1;
 		this.health = 100;
 		this.lifetime = 0;
@@ -21,10 +26,11 @@ public class AntAgent {
 		this.rTime = 30;
 		this.actCount = 4;
 		this.shoot = false;
+		this.terr = t;
 		if (shoot) this.actCount++;
 		if (actMatrix == null) {
 			Random rnd = new Random();
-			this.genome = new double[sense().length][actCount];
+			this.genome = new double[sense().size()][actCount];
 			for (int i = 0; i < this.genome.length; i++) {
 				for (int j = 0; j < this.genome[0].length; j++) {
 					this.genome[i][j] = rnd.nextGaussian() * 0.3;
@@ -35,9 +41,37 @@ public class AntAgent {
 		if (actCount != this.genome.length) throw new Exception("Incorrect dim for weight matrix");
 	}
 
+	public void display() {
+		this.terr.display();
+		StdDraw.setPenColor(110,0,255);
+		if (this.dir % 2 != 0)
+			StdDraw.filledRectangle(x-1, y-2.5, 2, 5);
+		else
+			StdDraw.filledRectangle(x-2.5, y-1, 5, 2);
+	}
+
+	public void step() {
+		if (this.dir == 1) y++;
+		else if (this.dir == 2) x++;
+		else if (this.dir == 3) y--;
+		else if (this.dir == 4) x--;
+		this.terr.paths[x][y] = this.dir;
+
+	}
+	public void turnRight() {
+		if (this.dir == 4) this.dir = 1;
+		else this.dir++;
+		sense();
+	}
+	public void turnLeft() {
+		if (this.dir == 1) this.dir = 4;
+		else this.dir--;
+		sense();
+	}
+
 	public void live() {
 		if (this.health <= 0) this.die();
-		this.act();
+		this.act(this.chooseAction());
 		if (this.rCounter==this.rTime && this.lifetime >= this.rAge) {
 			this.reproduce();
 		}
@@ -63,15 +97,32 @@ public class AntAgent {
 
 	}
 	public int[] see() {
-		int[] seeVal = new int[55];
+		int[] seeVal = new int[121];
+		for (int i = 0; i < 11; i++) {
+			for (int j = 0; j < 11; j++) {
+				if (this.dir % 2 != 0) {
+					seeVal[i*11 + j] = this.terr.land[x-5+i][y+j];
+				}
+				else {
+					seeVal[i*11 + j] = this.terr.land[x+i][y-5+j];
+				}
+			}
+		}
 		return seeVal;
 	}
 	public int hear() {
 		int hearCount = 0;
+		// not sure how to detect other ants atm
 		return hearCount;
 	}
 	public int smell() {
 		int smellCount = 0;
+		for (int i = 0; i < 11; i++) {
+			for (int j = 0; j < 11; j++) {
+				if (this.terr.food.foodSites[x-5+i][y-5+j] == 1)
+					smellCount++;
+			}
+		}
 		return smellCount;
 	}
 	public int senseLine() {
@@ -100,10 +151,10 @@ public class AntAgent {
 	}
 	public AntAgent reproduce() {
 		double[][] childGenes = mutateGenome(this.genome);
-		return AntAgent(childGenes);
+		return new AntAgent(childGenes, this.terr);
 	}
 
-	public static double[][] mutateGenome(double[][] genome) {
+	public double[][] mutateGenome(double[][] genome) {
 		Random rnd = new Random();
 		for (int i = 0; i < genome.length; i++) {
 			for (int j = 0; j < genome[0].length; j++) {
