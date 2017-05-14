@@ -18,7 +18,7 @@ public class AntAgent {
 	final double id = Math.random();
 	protected Terrain terr;
 
-	public AntAgent(double[][] actMatrix, Terrain t) {
+	public AntAgent(double[][] actMatrix, int x, int y, int dir, Terrain t) {
 		this.mutateChance = 0.1;
 		this.health = 100;
 		this.lifetime = 0;

@@ -486,7 +486,7 @@ public class Terrain {
 			System.out.println(i + ": " +100*x/(dim*dim));
 		}
 
-		Ant ant = new Ant(200, 200, terr);
+		AntAgent ant = new AntAgent(null, 200, 200, 1, terr);
 		for (int i = 0; i < 500; i++) {
 			ant.step();
 			ant.display();
