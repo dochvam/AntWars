@@ -487,7 +487,7 @@ public class Terrain {
 		}
 		
 		Random rnd = new Random();
-		double[][] genome = new double[121][3];
+		double[][] genome = new double[124][3];
 		for (int i = 0; i < genome.length; i++) {
 			for (int j = 0; j < genome[0].length; j++) {
 				genome[i][j] = rnd.nextGaussian() * 0.3;
@@ -499,6 +499,10 @@ public class Terrain {
 			ant.display();
 			StdDraw.show();
 		}
+		//for a full sim, we need a food list, an antAgent list, collision checking between the two, healing,
+		//reproduction, and food spawning
+		
+		
 		// for (int i = 0; i < 100; i++) {
 		// 	for (int j = 0; j < 100; j++) {
 		// 		System.out.print(terr.land[i][j]);

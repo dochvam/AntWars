@@ -17,7 +17,6 @@ public class AntAgent {
 	protected int dir;
 	final double id = Math.random();
 	protected Terrain terr;
-
 	public AntAgent(double[][] actMatrix, Terrain t, int x, int y) throws Exception{
 		this.x = x;
 		this.y = y;
@@ -42,7 +41,6 @@ public class AntAgent {
 
 		if (actCount != this.genome[0].length) throw new Exception("Incorrect dim for weight matrix");
 	}
-
 	public void display() {
 		this.terr.display();
 		StdDraw.setPenColor(110,0,255);
@@ -51,7 +49,6 @@ public class AntAgent {
 		else
 			StdDraw.filledRectangle(x-2.5, y-1, 5, 2);
 	}
-
 	public void step() {
 		switch(this.dir){
 			case 1:
@@ -89,7 +86,9 @@ public class AntAgent {
 		this.placeLine();
 		this.age();
 	}
-
+	public void heal(int amt){
+		this.health+=amt;
+	}
 	public void die() {
 		this.alive = false;
 	}
@@ -185,7 +184,6 @@ public class AntAgent {
 		AntAgent child = new AntAgent(childGenes, this.terr, this.x-10, this.y-10);
 		return child;
 	}
-
 	public double[][] mutateGenome(double[][] genome) {
 		Random rnd = new Random();
 		for (int i = 0; i < genome.length; i++) {
@@ -221,7 +219,6 @@ public class AntAgent {
 		}
 		return ans;
 	}
-
 	public static void main(String[] args) {
 		double[][] m = {{1,2},{3,4},{5,6}};
 		double[] v = {0,4,5};
