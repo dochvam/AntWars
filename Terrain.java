@@ -498,6 +498,7 @@ public class Terrain {
 			ant.live();
 			ant.display();
 			StdDraw.show();
+
 		}
 		//for a full sim, we need a food list, an antAgent list, collision checking between the two, healing,
 		//reproduction, and food spawning

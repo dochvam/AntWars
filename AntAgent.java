@@ -17,6 +17,7 @@ public class AntAgent {
 	protected int dir;
 	final double id = Math.random();
 	protected Terrain terr;
+
 	public AntAgent(double[][] actMatrix, Terrain t, int x, int y) throws Exception{
 		this.x = x;
 		this.y = y;
@@ -29,6 +30,9 @@ public class AntAgent {
 		this.rTime = 30;
 		this.actCount = 3;
 		this.terr = t;
+		this.x = x;
+		this.y = y;
+		this.dir = dir;
 		if (actMatrix == null) {
 			Random rnd = new Random();
 			this.genome = new double[this.sense().size()][this.actCount];
@@ -38,7 +42,6 @@ public class AntAgent {
 				}
 			}
 		} else this.genome = actMatrix;
-
 		if (actCount != this.genome[0].length) throw new Exception("Incorrect dim for weight matrix");
 	}
 	public void display() {
@@ -102,6 +105,7 @@ public class AntAgent {
 
 	}
 	public int chooseAction(double[] actVector) {
+
 		double max = actVector[0];
 		int maxIndex = 0;
 
@@ -112,6 +116,7 @@ public class AntAgent {
 		    }
 		}
 		return maxIndex;
+
 	}
 	public void act(int action) {
 		switch(action){
@@ -219,6 +224,7 @@ public class AntAgent {
 		}
 		return ans;
 	}
+
 	public static void main(String[] args) {
 		double[][] m = {{1,2},{3,4},{5,6}};
 		double[] v = {0,4,5};
