@@ -1,15 +1,17 @@
+import java.util.ArrayList;
+
 public class Colony {
-	ArrayList<Ant> members;
+	ArrayList<AntAgent> members;
 	int x;
 	int y;
 
-	public Colony(x,y) {
+	public Colony(int x,int y) {
 		this.x = x;
 		this.y = y;
 		this.members = new ArrayList<>();
 	}
 
-	public spawn() {
-		members.add(new Ant(x,y));
+	public void spawn() {
+		members.add(new AntAgent(null,Terrain t,150,150));
 	}
 }

@@ -470,7 +470,7 @@ public class Terrain {
 		return sum;
 	}
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws Exception{
 		int dim = 400;
 
 		StdDraw.setCanvasSize(800,800);
@@ -485,12 +485,25 @@ public class Terrain {
 			int x = terr.getAreaOf(i);
 			System.out.println(i + ": " +100*x/(dim*dim));
 		}
-
-		AntAgent ant = new AntAgent(null, 200, 200, 1, terr);
-		for (int i = 0; i < 500; i++) {
-			ant.live();
-			if (i %10 == 0) StdDraw.show();
+		
+		Random rnd = new Random();
+		double[][] genome = new double[124][3];
+		for (int i = 0; i < genome.length; i++) {
+			for (int j = 0; j < genome[0].length; j++) {
+				genome[i][j] = rnd.nextGaussian() * 0.3;
+			}
 		}
+		AntAgent ant = new AntAgent(null, terr, 150, 150);
+		for (int k = 0; k < 1000; k++) {
+			ant.live();
+			ant.display();
+			StdDraw.show();
+
+		}
+		//for a full sim, we need a food list, an antAgent list, collision checking between the two, healing,
+		//reproduction, and food spawning
+		
+		
 		// for (int i = 0; i < 100; i++) {
 		// 	for (int j = 0; j < 100; j++) {
 		// 		System.out.print(terr.land[i][j]);
