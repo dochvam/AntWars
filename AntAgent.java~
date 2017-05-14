@@ -18,21 +18,19 @@ public class AntAgent {
 	final double id = Math.random();
 	protected Terrain terr;
 
-	public AntAgent(double[][] actMatrix, Terrain t, int x, int y) throws Exception{
-		this.x = x;
-		this.y = y;
-		this.dir = 1;
+	public AntAgent(double[][] actMatrix, Terrain t) {
 		this.mutateChance = 0.1;
 		this.mutateVal = 0.08;
-		this.health = 1000;
+		this.health = 100;
 		this.lifetime = 0;
 		this.rCounter = 0;
 		this.rTime = 30;
+		//DOUBLE CHECK
 		this.actCount = 3;
 		this.terr = t;
 		if (actMatrix == null) {
 			Random rnd = new Random();
-			this.genome = new double[this.sense().size()][this.actCount];
+			this.genome = new double[sense().size()][actCount];
 			for (int i = 0; i < this.genome.length; i++) {
 				for (int j = 0; j < this.genome[0].length; j++) {
 					this.genome[i][j] = rnd.nextGaussian() * 0.3;
@@ -40,7 +38,7 @@ public class AntAgent {
 			}
 		} else this.genome = actMatrix;
 
-		if (actCount != this.genome[0].length) throw new Exception("Incorrect dim for weight matrix");
+		if (actCount != this.genome.length) throw new Exception("Incorrect dim for weight matrix");
 	}
 
 	public void display() {
@@ -79,9 +77,10 @@ public class AntAgent {
 		else this.dir--;
 	}
 
-	public void live() throws Exception{
+	public void live() {
 		if (this.health <= 0) this.die();
 		this.act(this.chooseAction(this.actions(this.sense())));
+
 		this.display();
 		if (this.rCounter==this.rTime && this.lifetime >= this.rAge) {
 			this.reproduce();
@@ -97,22 +96,14 @@ public class AntAgent {
 		this.lifetime++;
 		this.rCounter++;
 		this.rCounter = this.rCounter % this.rTime;
-		this.health--;
 	}
 	public void placeLine() {
 
 	}
-	public int chooseAction(double[] actVector) {
-		double max = actVector[0];
-		int maxIndex = 0;
+	public void chooseAction(double[] actVector) {
+		maxVal = Collections.max(actVector);
+		return Arrays.asList(actVector).indexOf(maxVal);
 
-		for (int i = 1; i < actVector.length; i++) {
-		    if (actVector[i] > max) {
-		      max = actVector[i];
-		      maxIndex = i;
-		    }
-		}
-		return maxIndex;
 	}
 	public void act(int action) {
 		switch(action){
@@ -124,8 +115,7 @@ public class AntAgent {
 				break;
 			case 3:
 				break;
-		}
-		this.step();
+
 	}
 	public int[] see() {
 		int[] seeVal = new int[121];
@@ -180,10 +170,9 @@ public class AntAgent {
 		}
 		return actVector;
 	}
-	public AntAgent reproduce() throws Exception {
+	public AntAgent reproduce() {
 		double[][] childGenes = mutateGenome(this.genome);
-		AntAgent child = new AntAgent(childGenes, this.terr, this.x-10, this.y-10);
-		return child;
+		return new AntAgent(childGenes, this.terr);
 	}
 
 	public double[][] mutateGenome(double[][] genome) {
