@@ -488,9 +488,8 @@ public class Terrain {
 
 		AntAgent ant = new AntAgent(null, 200, 200, 1, terr);
 		for (int i = 0; i < 500; i++) {
-			ant.step();
-			ant.display();
-			StdDraw.show();
+			ant.live();
+			if (i %10 == 0) StdDraw.show();
 		}
 		// for (int i = 0; i < 100; i++) {
 		// 	for (int j = 0; j < 100; j++) {

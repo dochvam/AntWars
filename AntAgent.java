@@ -24,10 +24,13 @@ public class AntAgent {
 		this.health = 100;
 		this.lifetime = 0;
 		this.rCounter = 0;
-		this.rTime = 30;
+		this.rTime = 10;
 		//DOUBLE CHECK
 		this.actCount = 3;
 		this.terr = t;
+		this.x = x;
+		this.y = y;
+		this.dir = dir;
 		if (actMatrix == null) {
 			Random rnd = new Random();
 			this.genome = new double[sense().size()][actCount];
@@ -38,7 +41,7 @@ public class AntAgent {
 			}
 		} else this.genome = actMatrix;
 
-		if (actCount != this.genome.length) throw new Exception("Incorrect dim for weight matrix");
+		// if (actCount != this.genome.length) throw new Exception("Incorrect dim for weight matrix");
 	}
 
 	public void display() {
@@ -99,10 +102,8 @@ public class AntAgent {
 	public void placeLine() {
 
 	}
-	public void chooseAction(double[] actVector) {
-		maxVal = Collections.max(actVector);
-		return Arrays.asList(actVector).indexOf(maxVal);
-
+	public int chooseAction(double[] actVector) {
+		return maxIndex(actVector);
 	}
 	public void act(int action) {
 		switch(action){
@@ -115,7 +116,7 @@ public class AntAgent {
 			case 3:
 				break;
 		}
-		this.step()
+		this.step();
 	}
 	public int[] see() {
 		int[] seeVal = new int[121];
@@ -172,7 +173,7 @@ public class AntAgent {
 	}
 	public AntAgent reproduce() {
 		double[][] childGenes = mutateGenome(this.genome);
-		return new AntAgent(childGenes, this.terr);
+		return new AntAgent(childGenes, this.x, this.y +3, this.dir, this.terr);
 	}
 
 	public double[][] mutateGenome(double[][] genome) {
@@ -209,6 +210,18 @@ public class AntAgent {
 			}
 		}
 		return ans;
+	}
+
+	public static int maxIndex(double[] arr) {
+		int maxIndex = 0;
+		double maxVal = 0;
+		for (int i = 0; i < arr.length; i++) {
+			if (arr[i] > maxVal) {
+				maxIndex = i;
+				maxVal = arr[i];
+			}
+		}
+		return maxIndex;
 	}
 
 	public static void main(String[] args) {
