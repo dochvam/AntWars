@@ -3,6 +3,7 @@ import java.util.*;
 public class AntAgent {
 
 	protected double mutateChance;
+	protected double mutateVal;
 	protected int health;
 	protected int lifetime;
 	protected int rCounter;
@@ -10,7 +11,6 @@ public class AntAgent {
 	protected int rAge;
 	protected int actCount;
 	protected double[][] genome;
-	protected boolean shoot;
 	protected boolean alive = true;
 	protected int x;
 	protected int y;
@@ -20,14 +20,14 @@ public class AntAgent {
 
 	public AntAgent(double[][] actMatrix, int x, int y, int dir, Terrain t) {
 		this.mutateChance = 0.1;
+		this.mutateVal = 0.08;
 		this.health = 100;
 		this.lifetime = 0;
 		this.rCounter = 0;
 		this.rTime = 30;
-		this.actCount = 4;
-		this.shoot = false;
+		//DOUBLE CHECK
+		this.actCount = 3;
 		this.terr = t;
-		if (shoot) this.actCount++;
 		if (actMatrix == null) {
 			Random rnd = new Random();
 			this.genome = new double[sense().size()][actCount];
@@ -51,27 +51,36 @@ public class AntAgent {
 	}
 
 	public void step() {
-		if (this.dir == 1) y++;
-		else if (this.dir == 2) x++;
-		else if (this.dir == 3) y--;
-		else if (this.dir == 4) x--;
+		switch(this.dir){
+			case 1:
+				y++;
+				break;
+			case 2:
+				x++;
+				break;
+			case 3:
+				y--;
+				break;
+			case 4:
+				x--;
+				break;
+		}
 		this.terr.paths[x][y] = this.dir;
 
 	}
 	public void turnRight() {
 		if (this.dir == 4) this.dir = 1;
 		else this.dir++;
-		sense();
 	}
 	public void turnLeft() {
 		if (this.dir == 1) this.dir = 4;
 		else this.dir--;
-		sense();
 	}
 
 	public void live() {
 		if (this.health <= 0) this.die();
-		this.act(this.chooseAction());
+		this.act(this.chooseAction(this.actions(this.sense())));
+		this.display();
 		if (this.rCounter==this.rTime && this.lifetime >= this.rAge) {
 			this.reproduce();
 		}
@@ -91,10 +100,22 @@ public class AntAgent {
 
 	}
 	public void chooseAction(double[] actVector) {
+		maxVal = Collections.max(actVector);
+		return Arrays.asList(actVector).indexOf(maxVal);
 
 	}
 	public void act(int action) {
-
+		switch(action){
+			case 1:
+				this.turnLeft();
+				break;
+			case 2:
+				this.turnRight();
+				break;
+			case 3:
+				break;
+		}
+		this.step()
 	}
 	public int[] see() {
 		int[] seeVal = new int[121];
@@ -138,7 +159,7 @@ public class AntAgent {
 		senses.add(senseLine());
 		return senses;
 	}
-	public double[] action(ArrayList<Integer> senses) {
+	public double[] actions(ArrayList<Integer> senses) {
 		double[] s = new double[senses.size()];
 		for (int i = 0; i < senses.size(); i++) s[i] = (double)senses.get(i);
 		
@@ -159,7 +180,7 @@ public class AntAgent {
 		for (int i = 0; i < genome.length; i++) {
 			for (int j = 0; j < genome[0].length; j++) {
 				if (Math.random() <= this.mutateChance) {
-					genome[i][j] = rnd.nextGaussian() * Math.abs(0.08*genome[i][j]) + genome[i][j];
+					genome[i][j] = rnd.nextGaussian() * Math.abs(this.mutateVal*genome[i][j]) + genome[i][j];
 				}
 			}
 		}
